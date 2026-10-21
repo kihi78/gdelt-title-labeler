@@ -1,0 +1,9 @@
+# data and models never go into this public repository
+*.csv
+*.jsonl
+*.gguf
+models/
+llama*/
+data/
+__pycache__/
+.venv/
