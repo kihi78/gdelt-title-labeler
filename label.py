@@ -10,7 +10,7 @@ a different prompt is a different measurement (change PROMPT_VERSION if you must
     python label.py compare  a.jsonl b.jsonl           # agreement and kappa between two label files
     python label.py prompt-hash                          # fingerprint of the prompt template (compare across machines)
 
-Input CSV (UTF-8, header row):  label: id,topic,title   (topic is one of prices, fx, monetary, markets)
+Input CSV (UTF-8, header row):  label: id (or gkg_record_id),topic,title   (topic: prices, fx, monetary, markets)
                                 validate: no,topic,title,final   (final = human label 0/1; topic as in the study's CSV:
                                           prices/fx/monetary/markets or 物価/為替/金融政策・金利/株式市場)
 Output: one JSON object per line {key, v, model, topic, title, ans, id?}. `key` is identical to the key used by the study
@@ -141,7 +141,7 @@ def kappa(pairs: list[tuple[str, str]]) -> tuple[float, float, int]:
 
 def cmd_label(a: argparse.Namespace) -> int:
     rows = read_csv(a.inp)
-    items = [{"id": r.get("id", ""), "topic": r["topic"], "title": r["title"]} for r in rows]
+    items = [{"id": r.get("id") or r.get("gkg_record_id", ""), "topic": r["topic"], "title": r["title"]} for r in rows]
     bad = {i["topic"] for i in items} - set(TOPICS)
     if bad:
         raise SystemExit(f"unknown topic(s): {sorted(bad)}; use one of {sorted(TOPICS)}")
