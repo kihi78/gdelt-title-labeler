@@ -20,8 +20,8 @@ fingerprint (`2026-10-17a 722ec39738da7f77`); two machines that print different 
 
 1. Install Python 3.11+ and `pip install -r requirements.txt`.
 2. Download from the [llama.cpp release b11327](https://github.com/ggml-org/llama.cpp/releases/tag/b11327)
-   `llama-b11327-bin-win-cuda-12.4-x64.zip` and `cudart-llama-bin-win-cuda-12.4-x64.zip` (use the 13.4 pair if your driver is
-   recent enough; `nvidia-smi` shows the supported CUDA version). Unzip both into one folder, e.g. `llama\`.
+   `llama-b11327-bin-win-cuda-12.4-x64.zip` and `cudart-llama-bin-win-cuda-12.4-x64.zip` (use the 13.4 pair only if `nvidia-smi` reports
+   CUDA 13.4 or higher; with CUDA 13.1 take 12.4). Unzip both into one folder, e.g. `llama\`.
 3. Download a model (GGUF) into `models\`:
    - `Qwen_Qwen3.5-9B-Q4_K_M.gguf` (bartowski's quantisation of Qwen/Qwen3.5-9B, 6.17 GB) — the study's second model;
    - Qwen2.5-7B-Instruct Q4_K_M from `Qwen/Qwen2.5-7B-Instruct-GGUF` (two shards, 4.7 GB) — the study's first model.
