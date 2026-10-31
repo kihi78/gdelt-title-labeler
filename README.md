@@ -48,7 +48,7 @@ python label.py validate --in titles_check_1_final.csv --out validate_q35.jsonl 
 # 2. label a file of headlines (columns: id,topic,title)
 python label.py label --in titles.csv --out labels_q35.jsonl --tag qwen3.5-9b --parallel 4
 
-# 3. compare with the earlier CPU answers (CSV with an `llm` column); expect agreement of about 95% or more
+# 3. compare with the earlier CPU answers (CSV with an `llm` column); small differences are possible (different floating-point arithmetic on GPU)
 python label.py vs-csv --ref titles_9lang_v2_cpu_q35.csv --in labels_q35.jsonl --tag qwen3.5-9b
 
 # 4. agreement between two label files with the same tag
