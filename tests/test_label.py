@@ -52,3 +52,14 @@ def test_keys_match_study_repository():
 
 def test_prompt_is_stable():
     assert label.prompt_hash() == "722ec39738da7f77"   # changes only if the prompt, topics or grammar change
+
+
+def test_vs_csv(tmp_path, server, capsys):
+    ref = tmp_path / "ref.csv"
+    ref.write_text("\n".join(["gkg_record_id,topic,title,llm", "a,prices,Inflation up,1", "b,fx,Weather,1", ""]), encoding="utf-8")
+    src = tmp_path / "in.csv"
+    src.write_text("\n".join(["id,topic,title", "a,prices,Inflation up", "b,fx,Weather", ""]), encoding="utf-8")
+    out = tmp_path / "o.jsonl"
+    label.main(["label", "--in", str(src), "--out", str(out), "--tag", "qwen3.5-9b"])
+    assert label.main(["vs-csv", "--ref", str(ref), "--in", str(out), "--tag", "qwen3.5-9b"]) == 0
+    assert "2 common questions: agreement 50.0%" in capsys.readouterr().out
