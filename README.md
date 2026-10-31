@@ -22,10 +22,15 @@ fingerprint (`2026-10-17a 722ec39738da7f77`); two machines that print different 
 2. Download from the [llama.cpp release b11327](https://github.com/ggml-org/llama.cpp/releases/tag/b11327)
    `llama-b11327-bin-win-cuda-12.4-x64.zip` and `cudart-llama-bin-win-cuda-12.4-x64.zip` (use the 13.4 pair only if `nvidia-smi` reports
    CUDA 13.4 or higher; with CUDA 13.1 take 12.4). Unzip both into one folder, e.g. `llama\`.
-3. Download a model (GGUF) into `models\`:
-   - `Qwen_Qwen3.5-9B-Q4_K_M.gguf` (bartowski's quantisation of Qwen/Qwen3.5-9B, 6.17 GB) — the study's second model;
-   - Qwen2.5-7B-Instruct Q4_K_M from `Qwen/Qwen2.5-7B-Instruct-GGUF` (two shards, 4.7 GB) — the study's first model.
-   Record `Get-FileHash -Algorithm SHA256 <file>` for each file and compare it with the hash shown on the Hugging Face page.
+3. Download the two models (GGUF) into `models\` and check the SHA256 (`Get-FileHash -Algorithm SHA256 <file>`):
+
+   | File | Source | Size | SHA256 |
+   |---|---|---|---|
+   | `Qwen_Qwen3.5-9B-Q4_K_M.gguf` (study's second model; bartowski's quantisation of Qwen/Qwen3.5-9B) | [bartowski/Qwen_Qwen3.5-9B-GGUF](https://huggingface.co/bartowski/Qwen_Qwen3.5-9B-GGUF) | 6.17 GB | `d784ce9eda1a5a7b51e8f705a9e6310844bf4f173654d115823c775fdea56d43` |
+   | `qwen2.5-7b-instruct-q4_k_m-00001-of-00002.gguf` (study's first model, shard 1) | [Qwen/Qwen2.5-7B-Instruct-GGUF](https://huggingface.co/Qwen/Qwen2.5-7B-Instruct-GGUF) | 3.99 GB | `dfce12e3862a5283ccfb88221b48480e58745165de856439950d0f22590580db` |
+   | `qwen2.5-7b-instruct-q4_k_m-00002-of-00002.gguf` (shard 2, keep next to shard 1) | same | 0.69 GB | `539cf93f78e887edea1c04e2d7d8cdaca9d01dae9c9025bcb8accbe29df3d72a` |
+
+   These are the hashes of the files used in the study (verified on the study server and against the Hugging Face file pages).
 4. Start the server (all layers on the GPU, 4 parallel slots):
 
 ```powershell
