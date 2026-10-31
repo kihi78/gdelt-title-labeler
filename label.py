@@ -8,6 +8,7 @@ a different prompt is a different measurement (change PROMPT_VERSION if you must
     python label.py label    --in titles.csv --out labels.jsonl --tag qwen3.5-9b --parallel 4
     python label.py validate --in human_labels.csv --out validate.jsonl --tag qwen3.5-9b
     python label.py compare  a.jsonl b.jsonl           # agreement and kappa between two label files
+    python label.py vs-csv   --ref ref.csv --in new.jsonl --tag qwen3.5-9b   # new answers vs a CSV with an `llm` column
     python label.py prompt-hash                          # fingerprint of the prompt template (compare across machines)
 
 Input CSV (UTF-8, header row):  label: id (or gkg_record_id),topic,title   (topic: prices, fx, monetary, markets)
@@ -163,6 +164,27 @@ def cmd_validate(a: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_vs_csv(a: argparse.Namespace) -> int:
+    """Compare new answers with earlier answers kept in a CSV (columns topic, title, llm), e.g. the CPU run."""
+    ref = [r for r in read_csv(a.ref) if r.get("llm") in ("0", "1")]
+    new = load_done(Path(a.inp))
+    pairs, diff = [], []
+    for r in ref:
+        k = cache_key(a.tag, r["topic"], r["title"])
+        if k in new:
+            pairs.append((r["llm"], new[k]))
+            if r["llm"] != new[k]:
+                diff.append(r)
+    if not pairs:
+        print("no common questions (check --tag and the topic names)")
+        return 1
+    k, po, n = kappa(pairs)
+    print(f"{n} common questions: agreement {po:.1%}, kappa {k:.3f}, {len(diff)} differ")
+    for r in diff[:10]:
+        print(f"  ref={r['llm']}  {r['topic']}  {r['title'][:80]}")
+    return 0
+
+
 def cmd_compare(a: argparse.Namespace) -> int:
     x, y = load_done(Path(a.a)), load_done(Path(a.b))
     both = sorted(set(x) & set(y))
@@ -186,12 +208,16 @@ def main(argv: list[str] | None = None) -> int:
     s = sub.add_parser("compare")
     s.add_argument("a")
     s.add_argument("b")
+    s = sub.add_parser("vs-csv")
+    s.add_argument("--ref", required=True)
+    s.add_argument("--in", dest="inp", required=True)
+    s.add_argument("--tag", required=True)
     sub.add_parser("prompt-hash")
     a = p.parse_args(argv)
     if a.cmd == "prompt-hash":
         print(f"{PROMPT_VERSION} {prompt_hash()}")
         return 0
-    return {"label": cmd_label, "validate": cmd_validate, "compare": cmd_compare}[a.cmd](a)
+    return {"label": cmd_label, "validate": cmd_validate, "compare": cmd_compare, "vs-csv": cmd_vs_csv}[a.cmd](a)
 
 
 if __name__ == "__main__":
