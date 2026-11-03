@@ -7,3 +7,6 @@ llama*/
 data/
 __pycache__/
 .venv/
+results/
+dl/
+server_*.log
