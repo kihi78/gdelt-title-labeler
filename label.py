@@ -25,6 +25,7 @@ import csv
 import hashlib
 import json
 import math
+import os
 import sys
 import threading
 import time
@@ -33,7 +34,7 @@ from pathlib import Path
 
 import requests
 
-SERVER = "http://127.0.0.1:8089"
+SERVER = os.environ.get("LLM_SERVER", "http://127.0.0.1:8089")   # in Docker Compose: http://llm:8089
 PROMPT_VERSION = "2026-10-17a"
 TOPICS = {
     "prices": ("consumer prices and inflation",
@@ -93,7 +94,7 @@ def ask(session: requests.Session, topic: str, title: str) -> str:
             return r.json()["choices"][0]["message"]["content"].strip()[:1]
         except requests.RequestException:
             time.sleep(5 * (attempt + 1))
-    raise SystemExit("Cannot reach llama-server. Is it running on 127.0.0.1:8089?")
+    raise SystemExit(f"Cannot reach llama-server at {SERVER}. Is it running?")
 
 
 def run(items: list[dict], out: Path, tag: str, parallel: int) -> dict[str, str]:

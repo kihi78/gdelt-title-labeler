@@ -1,0 +1,41 @@
+# docker compose up -d llm  (MODEL=q35|q25)  ->  docker compose run --rm labeler <label.py arguments>  ->  docker compose down
+# No port is published on the host, and the network has no internet access: nothing clashes with other GPU services.
+services:
+  llm:
+    build: .
+    image: gdelt-title-labeler:b11327
+    command: ["bash", "/app/serve.sh"]
+    environment:
+      MODEL: ${MODEL:-q35}
+      CTX: ${CTX:-8192}
+      NGL: ${NGL:-99}
+    volumes:
+      - ./models:/models:ro
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://127.0.0.1:8089/health"]
+      interval: 5s
+      retries: 60
+    networks: [labnet]
+
+  labeler:
+    image: gdelt-title-labeler:b11327
+    profiles: ["tools"]
+    entrypoint: ["python3", "/app/label.py"]
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    environment:
+      LLM_SERVER: http://llm:8089
+    volumes:
+      - ./data:/app/data:ro
+      - ./results:/app/results
+    networks: [labnet]
+
+networks:
+  labnet:
+    internal: true

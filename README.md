@@ -9,19 +9,19 @@ decoding settings can be inspected and re-run.
 - **No data in this repository.** Headlines are the publishers' text; they are exchanged outside Git (`.gitignore` blocks
   `*.csv`, `*.jsonl`, `data/`, `results/` and model files).
 - One question per headline and topic. The model answers `1` or `0`, enforced by a grammar; temperature 0.
-- Output is an append-only JSONL, resume-safe; the key of each answer is the same as in the study's own cache.
-- Prompt version `2026-10-17a`; `python label.py prompt-hash` must print `2026-10-17a 722ec39738da7f77` on every machine.
+- The study's two models and llama.cpp build b11327 are used as they are; `label.py prompt-hash` must print
+  `2026-10-17a 722ec39738da7f77` on every machine.
 
-## Setup (Ubuntu Server, NVIDIA GPU; tested design: RTX 4070 Ti SUPER 16 GB)
+## Setup (Ubuntu, NVIDIA GPU, Docker with the NVIDIA Container Toolkit)
 
 ```bash
-sudo apt update && sudo apt install -y git curl python3-venv     # once
-nvidia-smi || { sudo ubuntu-drivers install && sudo reboot; }     # driver 570+ (CUDA 12.8+) is needed
 git clone https://github.com/kihi78/gdelt-title-labeler && cd gdelt-title-labeler
-bash setup_ubuntu.sh        # llama.cpp b11327 CUDA 12.8 build + 2 models (~11 GB) + venv; every download is SHA256-checked
+bash fetch_models.sh          # ~11 GB into models/, each file checked against its SHA256 (table below)
+docker compose build          # llama.cpp b11327 official CUDA 12.8 binaries (SHA256-checked) + label.py
 ```
 
-Files used (all verified against the Hugging Face / GitHub hashes, and identical to the study server's files):
+The containers publish no port and their network has no internet access, so they do not clash with other GPU services.
+Docker needs the user to be in the `docker` group (or run with `sudo`).
 
 | File | Source | Size | SHA256 |
 |---|---|---|---|
@@ -32,16 +32,18 @@ Files used (all verified against the Hugging Face / GitHub hashes, and identical
 ## Use
 
 ```bash
-bash run_check.sh                      # first run: reproduce the study's CPU results and time the GPU (needs data/*.csv)
-bash serve.sh start q35                # or q25; stop with: bash serve.sh stop
-.venv/bin/python label.py label --in data/titles.csv --out results/labels_q35.jsonl --tag qwen3.5-9b --parallel 4
-.venv/bin/python label.py validate --in data/titles_check_1_final.csv --out results/validate_q35.jsonl --tag qwen3.5-9b
-.venv/bin/python label.py vs-csv --ref data/ref.csv --in results/labels_q35.jsonl --tag qwen3.5-9b
-.venv/bin/python label.py compare a.jsonl b.jsonl
+bash run_check.sh                                  # first run: reproduce the study's results and time the GPU (needs data/*.csv)
+
+MODEL=q35 docker compose up -d --wait llm          # or MODEL=q25
+docker compose run --rm labeler label --in data/titles.csv --out results/labels_q35.jsonl --tag qwen3.5-9b --parallel 4
+docker compose run --rm labeler vs-csv --ref data/ref.csv --in results/labels_q35.jsonl --tag qwen3.5-9b
+docker compose down
 ```
 
-Input CSV for `label`: `id` (or `gkg_record_id`), `topic` (prices, fx, monetary, markets), `title`. `--tag` is recorded in every
-key and must match the model actually loaded (`qwen2.5-7b`, `qwen3.5-9b`, or a new name for a new model).
+Run as your own user with `export HOST_UID=$(id -u) HOST_GID=$(id -g)` first, so that `results/` stays yours.
+GPU memory: the 9B model needs about 8 GB. If another program holds the GPU, `NGL=24` keeps part of the model on the CPU.
+Input CSV for `label`: `id` (or `gkg_record_id`), `topic` (prices, fx, monetary, markets), `title`. `--tag` must match the
+model loaded (`qwen3.5-9b`, `qwen2.5-7b`, or a new name for a new model).
 
 ## Tests
 
