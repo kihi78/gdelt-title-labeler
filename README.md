@@ -12,7 +12,24 @@ decoding settings can be inspected and re-run.
 - The study's two models and llama.cpp build b11327 are used as they are; `label.py prompt-hash` must print
   `2026-10-17a 722ec39738da7f77` on every machine.
 
-## Setup (Ubuntu, NVIDIA GPU, Docker with the NVIDIA Container Toolkit)
+## Host prerequisites (Ubuntu Server, once)
+
+```bash
+sudo apt update && sudo apt install -y git curl docker.io docker-compose-v2 ubuntu-drivers-common
+sudo ubuntu-drivers install && sudo reboot            # NVIDIA driver (570+); then check:  nvidia-smi
+# NVIDIA Container Toolkit (GPU inside Docker), from NVIDIA's apt repository:
+curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list   | sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g'   | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+sudo apt update && sudo apt install -y nvidia-container-toolkit
+sudo nvidia-ctk runtime configure --runtime=docker && sudo systemctl restart docker
+sudo usermod -aG docker "$USER"                        # log out and in again
+docker run --rm --gpus all ubuntu:24.04 nvidia-smi     # must show the GPU
+```
+
+If `nvidia-smi` still fails after the reboot: `mokutil --sb-state` (with Secure Boot on, the driver module must be signed and
+enrolled at the blue MOK screen at boot, or Secure Boot must be switched off in the BIOS) and `sudo dmesg | grep -i nvidia`.
+
+## Setup (per clone)
 
 ```bash
 git clone https://github.com/kihi78/gdelt-title-labeler && cd gdelt-title-labeler
