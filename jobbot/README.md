@@ -17,7 +17,7 @@ dispatch.py wait    ◀── result <id> + zip ─ #results ◀─────�
 - Inside: inputs read-only at `/work/in`, models read-only at `/models`, writable `/work/out` (zipped and sent back) and
   `/tmp` (2 GB). **No network** (not even the lab LAN), no Linux capabilities, `no-new-privileges`, 32 GB RAM, 512 processes,
   time limit 6 h (`job.json` `{"hours": 12}` up to 24).
-- The worker obeys only the listed Discord user IDs, in one server and one channel. Job folders are deleted after 3 days;
+- The worker obeys only the listed Discord user IDs and the server owner, in one server and one channel. Job folders are deleted after 3 days;
   inputs right after the run.
 - Limits from Discord: job zip ≤ 24 MiB; results above 9 MiB are sent in parts and joined by `dispatch.py wait`.
 
@@ -26,7 +26,7 @@ dispatch.py wait    ◀── result <id> + zip ─ #results ◀─────�
 cd ~/gdelt-title-labeler && git pull                     # this folder must already have models/ and the built image
 install -m 600 /dev/null ~/.config/gpu-jobbot.env && nano ~/.config/gpu-jobbot.env
 #   DISCORD_TOKEN=<worker bot token>
-#   GUILD_ID=...  JOBS_CHANNEL_ID=...  RESULTS_CHANNEL_ID=...  ALLOWED_USER_IDS=<dispatcher bot id>,<your user id>
+#   GUILD_ID=...  JOBS_CHANNEL_ID=...  RESULTS_CHANNEL_ID=...  ALLOWED_USER_IDS=<dispatcher bot id>   (the server owner is always allowed)
 bash jobbot/run_bot.sh                                   # restarts by itself after reboots (docker --restart)
 ```
 Stop: `docker rm -f gpu-jobbot`. Logs: `docker logs gpu-jobbot`. Update: `git pull && bash jobbot/run_bot.sh`.

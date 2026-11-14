@@ -5,7 +5,8 @@ only makes an outbound connection to Discord. A job is a zip with job.py (+ inpu
 gdelt-title-labeler image with --network none, a read-only root, no capabilities and only its own folder writable,
 so even a job that misbehaves cannot reach the lab network or the internet. Results go back as a zip.
 
-Accepted only from: the configured server (GUILD_ID), the jobs channel (JOBS_CHANNEL_ID), and authors in ALLOWED_USER_IDS.
+Accepted only from: the configured server (GUILD_ID), the jobs channel (JOBS_CHANNEL_ID), and authors in ALLOWED_USER_IDS
+(the dispatcher bot) or the server's owner.
 
 Messages in the jobs channel:
   job <id>      with one attachment <id>.zip   -> queued; result posted in the results channel as "result <id> ..."
@@ -169,7 +170,7 @@ async def on_ready():
 async def on_message(m: discord.Message):
     if m.author.id == client.user.id or m.guild is None or m.guild.id != GUILD_ID or m.channel.id != JOBS_CHANNEL_ID:
         return
-    if m.author.id not in ALLOWED:
+    if m.author.id not in ALLOWED and m.author.id != m.guild.owner_id:     # the server owner is always allowed
         log("ignored author", m.author.id)
         return
     words = m.content.strip().split()
