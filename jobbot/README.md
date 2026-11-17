@@ -27,7 +27,8 @@ cd ~/gdelt-title-labeler && git pull                     # this folder must alre
 install -m 600 /dev/null ~/.config/gpu-jobbot.env && nano ~/.config/gpu-jobbot.env
 #   DISCORD_TOKEN=<worker bot token>
 #   GUILD_ID=...  JOBS_CHANNEL_ID=...  RESULTS_CHANNEL_ID=...  ALLOWED_USER_IDS=<dispatcher bot id>   (the server owner is always allowed)
-bash jobbot/run_bot.sh                                   # restarts by itself after reboots (docker --restart)
+bash jobbot/setup_lab.sh                                   # first time (token prompt, enables docker at boot, starts the worker)
+bash jobbot/run_bot.sh                                     # later restarts; the container restarts itself after reboots (docker --restart)
 ```
 Stop: `docker rm -f gpu-jobbot`. Logs: `docker logs gpu-jobbot`. Update: `git pull && bash jobbot/run_bot.sh`.
 
