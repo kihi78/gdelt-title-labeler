@@ -11,7 +11,7 @@ envf=$HOME/.config/gpu-jobbot.env
 chmod 600 "$envf"
 docker image inspect gdelt-title-labeler:b11327 >/dev/null || { echo "build the labeler image first: docker compose build"; exit 1; }
 mkdir -p "$repo/jobs"
-docker build -q -t gpu-jobbot:1 "$repo/jobbot"
+docker build --pull=false -q -t gpu-jobbot:1 "$repo/jobbot"
 docker rm -f gpu-jobbot >/dev/null 2>&1 || true
 docker run -d --name gpu-jobbot --restart unless-stopped --env-file "$envf" \
   -e JOBS_DIR="$repo/jobs" -e MODELS_DIR="$repo/models" -e JOBKIT_DIR="$repo/jobbot/jobkit" \
